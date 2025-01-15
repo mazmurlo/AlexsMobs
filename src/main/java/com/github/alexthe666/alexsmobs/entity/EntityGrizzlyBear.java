@@ -102,7 +102,7 @@ public class EntityGrizzlyBear extends TamableAnimal implements NeutralMob, IAni
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 55.0D).add(Attributes.ATTACK_DAMAGE, 8.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.6F).add(Attributes.MOVEMENT_SPEED, 0.25F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 60.0D).add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.ARMOR, 10.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.6F).add(Attributes.MOVEMENT_SPEED, 0.25F);
     }
 
     public EntityDimensions getDimensions(Pose poseIn) {
@@ -633,7 +633,16 @@ public class EntityGrizzlyBear extends TamableAnimal implements NeutralMob, IAni
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel world, AgeableMob p_241840_2_) {
-        return AMEntityRegistry.GRIZZLY_BEAR.get().create(world);
+        EntityGrizzlyBear baby = AMEntityRegistry.GRIZZLY_BEAR.get().create(world);
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     @Override

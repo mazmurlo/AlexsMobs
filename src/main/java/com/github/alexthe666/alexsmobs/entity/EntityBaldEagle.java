@@ -102,7 +102,7 @@ public class EntityBaldEagle extends TamableAnimal implements IFollower, IFalcon
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 16.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.ATTACK_DAMAGE, 5.0D).add(Attributes.MOVEMENT_SPEED, 0.3F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 24.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.MOVEMENT_SPEED, 0.3F);
     }
 
     public static boolean canEagleSpawn(EntityType<? extends Animal> animal, LevelAccessor worldIn, MobSpawnType reason, BlockPos pos, RandomSource random) {
@@ -616,7 +616,16 @@ public class EntityBaldEagle extends TamableAnimal implements IFollower, IFalcon
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel p_241840_1_, AgeableMob p_241840_2_) {
-        return AMEntityRegistry.BALD_EAGLE.get().create(p_241840_1_);
+        EntityBaldEagle baby = AMEntityRegistry.BALD_EAGLE.get().create(p_241840_1_);
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     public boolean causeFallDamage(float distance, float damageMultiplier) {
@@ -753,7 +762,7 @@ public class EntityBaldEagle extends TamableAnimal implements IFollower, IFalcon
 
     public void directFromPlayer(float rotationYaw, float rotationPitch, boolean loadChunk, Entity over) {
         final Entity owner = this.getOwner();
-        if (owner != null && this.distanceTo(owner) > 150) {
+        if (owner != null && this.distanceTo(owner) > 500) {
             returnControlTime = 100;
         }
         if (Math.abs(xo - this.getX()) > 0.1F || Math.abs(yo - this.getY()) > 0.1F || Math.abs(zo - this.getZ()) > 0.1F) {
@@ -764,12 +773,15 @@ public class EntityBaldEagle extends TamableAnimal implements IFollower, IFalcon
         int stillTPthreshold = AMConfig.falconryTeleportsBack ? 200 : 6000;
         this.setOrderedToSit(false);
         this.setLaunched(true);
+
+        // Teleport bird back if conditions are met
         if (owner != null && (returnControlTime > 0 && AMConfig.falconryTeleportsBack || stillTicksCounter > stillTPthreshold && this.distanceTo(owner) > 30)) {
             this.copyPosition(owner);
             returnControlTime = 0;
             stillTicksCounter = 0;
             launchTime = Math.max(launchTime, 12000);
         }
+
         if (!level.isClientSide) {
             if (returnControlTime > 0 && owner != null) {
                 this.getLookControl().setLookAt(owner, 30, 30);
@@ -790,9 +802,12 @@ public class EntityBaldEagle extends TamableAnimal implements IFollower, IFalcon
             } else {
                 this.getMoveControl().setWantedPosition(this.getX() + rad * 1.5F * Math.cos(yawOffset * Maths.piDividedBy180), this.getY() - rad * Math.sin(rotationPitch * Maths.piDividedBy180), this.getZ() + rad * Math.sin(yawOffset * Maths.piDividedBy180), speed);
             }
+
+            // Load chunks for the bird's position
             if (loadChunk) {
                 loadChunkOnServer(this.blockPosition());
             }
+
             this.setLastHurtByMob(null);
             this.setTarget(null);
             if (over == null) {

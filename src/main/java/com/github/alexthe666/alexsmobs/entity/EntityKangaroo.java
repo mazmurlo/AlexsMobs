@@ -117,7 +117,7 @@ public class EntityKangaroo extends TamableAnimal implements ContainerListener, 
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 22.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.MOVEMENT_SPEED, 0.5F).add(Attributes.ATTACK_DAMAGE, 4F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 30.0D).add(Attributes.ARMOR, 4.0D).add(Attributes.ARMOR_TOUGHNESS, 3.0D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.MOVEMENT_SPEED, 0.5F).add(Attributes.ATTACK_DAMAGE, 4F);
     }
 
     protected void tickLeash() {
@@ -767,7 +767,16 @@ public class EntityKangaroo extends TamableAnimal implements ContainerListener, 
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageableEntity) {
-        return AMEntityRegistry.KANGAROO.get().create(serverWorld);
+        EntityKangaroo baby = AMEntityRegistry.KANGAROO.get().create(serverWorld);
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     public void setMovementSpeed(double newSpeed) {
@@ -797,8 +806,11 @@ public class EntityKangaroo extends TamableAnimal implements ContainerListener, 
             double swordDamage = 0;
             int helmetIndex = -1;
             double helmetArmor = 0;
+            double helmetToughness = 0; // To track armor toughness
             int chestplateIndex = -1;
             double chestplateArmor = 0;
+            double chestplateToughness = 0; // To track armor toughness
+
             for (int i = 0; i < this.kangarooInventory.getContainerSize(); ++i) {
                 ItemStack stack = this.kangarooInventory.getItem(i);
                 if (!stack.isEmpty()) {
@@ -807,32 +819,41 @@ public class EntityKangaroo extends TamableAnimal implements ContainerListener, 
                         swordDamage = dmg;
                         swordIndex = i;
                     }
-                    if (stack.getItem().canEquip(stack, EquipmentSlot.HEAD, this)  && !this.isBaby() && helmetIndex == -1) {
+                    if (stack.getItem().canEquip(stack, EquipmentSlot.HEAD, this) && !this.isBaby() && helmetIndex == -1) {
                         helmetIndex = i;
                     }
                     if (stack.getItem() instanceof ArmorItem && !this.isBaby()) {
                         ArmorItem armorItem = (ArmorItem) stack.getItem();
                         if (armorItem.getSlot() == EquipmentSlot.HEAD) {
                             double prot = getProtectionForItem(stack, EquipmentSlot.HEAD);
+                            double toughness = getToughnessForItem(stack, EquipmentSlot.HEAD);
                             if (prot > 0 && prot > helmetArmor) {
                                 helmetArmor = prot;
+                                helmetToughness = toughness; // Store toughness for the helmet
                                 helmetIndex = i;
                             }
                         }
                         if (armorItem.getSlot() == EquipmentSlot.CHEST) {
                             double prot = getProtectionForItem(stack, EquipmentSlot.CHEST);
+                            double toughness = getToughnessForItem(stack, EquipmentSlot.CHEST);
                             if (prot > 0 && prot > chestplateArmor) {
                                 chestplateArmor = prot;
+                                chestplateToughness = toughness; // Store toughness for the chestplate
                                 chestplateIndex = i;
                             }
                         }
                     }
                 }
             }
+
             this.entityData.set(SWORD_INDEX, swordIndex);
             this.entityData.set(CHEST_INDEX, chestplateIndex);
             this.entityData.set(HELMET_INDEX, helmetIndex);
             updateClientInventory();
+
+            // Optionally log the results for debugging
+            System.out.println("Helmet Armor: " + helmetArmor + ", Toughness: " + helmetToughness);
+            System.out.println("Chestplate Armor: " + chestplateArmor + ", Toughness: " + chestplateToughness);
         }
     }
 
@@ -920,11 +941,24 @@ public class EntityKangaroo extends TamableAnimal implements ContainerListener, 
     public double getProtectionForItem(ItemStack itemStack, EquipmentSlot type) {
         Multimap<Attribute, AttributeModifier> map = itemStack.getAttributeModifiers(type);
         if (!map.isEmpty()) {
-            double d = 0;
+            double armor = 0;
             for (AttributeModifier mod : map.get(Attributes.ARMOR)) {
-                d += mod.getAmount();
+                armor += mod.getAmount();
             }
-            return d;
+            return armor;
+        }
+        return 0;
+    }
+
+    // Method to calculate the armor toughness of an item
+    public double getToughnessForItem(ItemStack itemStack, EquipmentSlot type) {
+        Multimap<Attribute, AttributeModifier> map = itemStack.getAttributeModifiers(type);
+        if (!map.isEmpty()) {
+            double toughness = 0;
+            for (AttributeModifier mod : map.get(Attributes.ARMOR_TOUGHNESS)) {
+                toughness += mod.getAmount();
+            }
+            return toughness;
         }
         return 0;
     }

@@ -108,7 +108,7 @@ public class EntityMimicOctopus extends TamableAnimal implements ISemiAquatic, I
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 16D).add(Attributes.ARMOR, 0.0D).add(Attributes.ATTACK_DAMAGE, 2.0D).add(Attributes.MOVEMENT_SPEED, 0.2F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 20D).add(Attributes.ARMOR, 0.0D).add(Attributes.ATTACK_DAMAGE, 2.0D).add(Attributes.MOVEMENT_SPEED, 0.2F);
     }
 
     public static boolean canMimicOctopusSpawn(EntityType<? extends Animal> animal, LevelAccessor worldIn, MobSpawnType reason, BlockPos pos, RandomSource random) {
@@ -737,7 +737,16 @@ public class EntityMimicOctopus extends TamableAnimal implements ISemiAquatic, I
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageableEntity) {
-        return AMEntityRegistry.MIMIC_OCTOPUS.get().create(serverWorld);
+        EntityMimicOctopus baby = AMEntityRegistry.MIMIC_OCTOPUS.get().create(serverWorld);
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     @Override

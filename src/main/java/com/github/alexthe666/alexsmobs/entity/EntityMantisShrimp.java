@@ -143,7 +143,7 @@ public class EntityMantisShrimp extends TamableAnimal implements ISemiAquatic, I
     }
 
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 20.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D).add(Attributes.ARMOR, 8D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.ATTACK_DAMAGE, 3.0D).add(Attributes.MOVEMENT_SPEED, 0.3F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 20.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D).add(Attributes.ARMOR, 10D).add(Attributes.ARMOR_TOUGHNESS, 3D).add(Attributes.FOLLOW_RANGE, 32.0D).add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.3F);
     }
 
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
@@ -554,9 +554,17 @@ public class EntityMantisShrimp extends TamableAnimal implements ISemiAquatic, I
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel serverWorld, AgeableMob ageableEntity) {
-        EntityMantisShrimp shrimp = AMEntityRegistry.MANTIS_SHRIMP.get().create(serverWorld);
-        shrimp.setVariant(getRandom().nextInt(3));
-        return shrimp;
+        EntityMantisShrimp baby = AMEntityRegistry.MANTIS_SHRIMP.get().create(serverWorld);
+        baby.setVariant(getRandom().nextInt(3));
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     @Override

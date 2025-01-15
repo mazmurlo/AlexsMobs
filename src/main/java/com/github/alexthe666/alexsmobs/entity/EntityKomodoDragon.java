@@ -391,13 +391,22 @@ public class EntityKomodoDragon extends TamableAnimal implements ITargetsDropped
         }
     }
     public static AttributeSupplier.Builder bakeAttributes() {
-        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 30D).add(Attributes.ARMOR, 0.0D).add(Attributes.ATTACK_DAMAGE, 4.0D).add(Attributes.MOVEMENT_SPEED, 0.23F);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 40D).add(Attributes.ARMOR, 5.0D).add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.MOVEMENT_SPEED, 0.23F);
     }
 
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(ServerLevel p_241840_1_, AgeableMob p_241840_2_) {
-        return AMEntityRegistry.KOMODO_DRAGON.get().create(p_241840_1_);
+        EntityKomodoDragon baby = AMEntityRegistry.KOMODO_DRAGON.get().create(p_241840_1_);
+        if (baby != null) {
+            if (this.isTame()) {
+                LivingEntity owner = this.getOwner();
+                if (owner instanceof Player) {
+                    baby.tame((Player) owner);
+                }
+            }
+        }
+        return baby;
     }
 
     @Override
