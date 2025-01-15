@@ -10,7 +10,7 @@
       "item": "alexsmobs:straddlite"
     },
     "L": {
-      "item": "minecraft:string"
+      "tag": "forge:string"
     }
   },
   "result": {

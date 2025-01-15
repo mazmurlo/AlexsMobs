@@ -10,7 +10,7 @@
       "item": "alexsmobs:guster_eye"
     },
     "L": {
-      "item": "minecraft:leather"
+      "tag": "forge:leather"
     },
     "S": {
       "tag": "minecraft:sand"
